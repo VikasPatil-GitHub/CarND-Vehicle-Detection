@@ -112,7 +112,20 @@ images = glob.glob('./dataset/non-vehicles/Extras/*.png')
 notcars.extend(images)
 
 
-### TODO: Tweak these parameters and see how the results change.
+rand_state = np.random.randint(0, 100)
+
+car_img = mpimg.imread(cars[rand_state])
+notcar_img = mpimg.imread(notcars[rand_state])
+
+fig = plt.figure()
+plt.subplot(121)
+plt.imshow(car_img)
+plt.title('Car')
+plt.subplot(122)
+plt.imshow(notcar_img)
+plt.title('Not-Car')
+plt.show()
+
 color_space = 'YCrCb' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
 orient = 9  # HOG orientations
 pix_per_cell = 8 # HOG pixels per cell
@@ -123,6 +136,69 @@ hist_bins = 32    # Number of histogram bins
 spatial_feat = True # Spatial features on or off
 hist_feat = True # Histogram features on or off
 hog_feat = True # HOG features on or off
+
+font_size=15
+f, axarr = plt.subplots(4, 7,figsize=(20,10))
+f.subplots_adjust(hspace=0.2, wspace=0.05)
+
+colorspace = cv2.COLOR_RGB2YCrCb
+
+i1,i2 = 22,4000
+
+for ind,j in enumerate([i1,i2]):
+    image = plt.imread(cars[j])
+    feature_image = cv2.cvtColor(image, colorspace)
+
+    axarr[ind,0].imshow(image)
+    axarr[ind,0].set_xticks([])
+    axarr[ind,0].set_yticks([])
+    title = "Car {0}".format(j)
+    axarr[ind,0].set_title(title, fontsize=font_size)
+
+    for channel in range(3):        
+        axarr[ind,channel+1].imshow(feature_image[:,:,channel],cmap='gray')
+        title = "Car YCrCb Ch {0}".format(channel)
+        axarr[ind,channel+1].set_title(title, fontsize=font_size)
+        axarr[ind,channel+1].set_xticks([])
+        axarr[ind,channel+1].set_yticks([])    
+    
+    for channel in range(3):
+        features,hog_image = get_hog_features(feature_image[:,:,channel], orient, pix_per_cell, 
+                                              cell_per_block, vis=True, feature_vec=True)
+        axarr[ind,channel+4].imshow(hog_image,cmap='gray')
+        title = "Car HOG Ch {0}".format(channel)
+        axarr[ind,channel+4].set_title(title, fontsize=font_size)
+        axarr[ind,channel+4].set_xticks([])
+        axarr[ind,channel+4].set_yticks([])
+
+for indn,j in enumerate([i1,i2]):
+    ind=indn+2
+    image = plt.imread(notcars[j])
+    feature_image = cv2.cvtColor(image, colorspace)
+
+    axarr[ind,0].imshow(image)
+    axarr[ind,0].set_xticks([])
+    axarr[ind,0].set_yticks([])
+    title = "Not Car {0}".format(j)
+    axarr[ind,0].set_title(title, fontsize=font_size)
+
+    for channel in range(3):        
+        axarr[ind,channel+1].imshow(feature_image[:,:,channel],cmap='gray')
+        title = "Not Car YCrCb Ch {0}".format(channel)
+        axarr[ind,channel+1].set_title(title, fontsize=font_size)
+        axarr[ind,channel+1].set_xticks([])
+        axarr[ind,channel+1].set_yticks([])        
+    
+    for channel in range(3):
+        features,hog_image = get_hog_features(feature_image[:,:,channel], orient, pix_per_cell, 
+                                              cell_per_block, vis=True, feature_vec=True)
+        axarr[ind,channel+4].imshow(hog_image,cmap='gray')
+        title = "Not Car HOG Ch {0}".format(channel)
+        axarr[ind,channel+4].set_title(title, fontsize=font_size)
+        axarr[ind,channel+4].set_xticks([])
+        axarr[ind,channel+4].set_yticks([])
+		
+plt.show()
 
 
 car_features = extract_features(cars, color_space=color_space, 
@@ -168,66 +244,64 @@ print('Test Accuracy of SVC = ', round(svc.score(X_test, y_test), 4))
 # Check the prediction time for a single sample
 t=time.time()
 
-#image = mpimg.imread('bbox-example-image.jpg')
+# images_test = glob.glob('./test_images/test*.jpg')
+# for image_test in images_test:
+	# image = mpimg.imread(image_test)
+	# draw_image = np.copy(image)
+	# #y_start_stop = [np.int(image.shape[0]/2),image.shape[0]] # Min and max in y to search in slide_window()
+	# y_start_stop = [370,656] # Min and max in y to search in slide_window()
+	# # Uncomment the following line if you extracted training
+	# # data from .png images (scaled 0 to 1 by mpimg) and the
+	# # image you are searching is a .jpg (scaled 0 to 255)
+	# image = image.astype(np.float32)/255
 
-images_test = glob.glob('./test_images/test*.jpg')
-for image_test in images_test:
-	image = mpimg.imread(image_test)
-	draw_image = np.copy(image)
-	#y_start_stop = [np.int(image.shape[0]/2),image.shape[0]] # Min and max in y to search in slide_window()
-	y_start_stop = [370,656] # Min and max in y to search in slide_window()
-	# Uncomment the following line if you extracted training
-	# data from .png images (scaled 0 to 1 by mpimg) and the
-	# image you are searching is a .jpg (scaled 0 to 255)
-	image = image.astype(np.float32)/255
+	# # windows = slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop, 
+						# # xy_window=(96, 96), xy_overlap=(0.5, 0.5))
+	# windows = []
+	# for i in range(2,35,2):
 
-	# windows = slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop, 
-						# xy_window=(96, 96), xy_overlap=(0.5, 0.5))
-	windows = []
-	for i in range(2,35,2):
-
-		windows_scaled = slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop, 
-						xy_window=(10*i, 10*i), xy_overlap=(0.5, 0.5))
-		windows.extend(windows_scaled)
+		# windows_scaled = slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop, 
+						# xy_window=(10*i, 10*i), xy_overlap=(0.5, 0.5))
+		# windows.extend(windows_scaled)
 
 
-	#print(windows)
-	hot_windows = search_windows(image, windows, svc, X_scaler, color_space=color_space, 
-							spatial_size=spatial_size, hist_bins=hist_bins, 
-							orient=orient, pix_per_cell=pix_per_cell, 
-							cell_per_block=cell_per_block, 
-							hog_channel=hog_channel, spatial_feat=spatial_feat, 
-							hist_feat=hist_feat, hog_feat=hog_feat)                       
+	# #print(windows)
+	# hot_windows = search_windows(image, windows, svc, X_scaler, color_space=color_space, 
+							# spatial_size=spatial_size, hist_bins=hist_bins, 
+							# orient=orient, pix_per_cell=pix_per_cell, 
+							# cell_per_block=cell_per_block, 
+							# hog_channel=hog_channel, spatial_feat=spatial_feat, 
+							# hist_feat=hist_feat, hog_feat=hog_feat)                       
 
-	window_img = draw_boxes(draw_image, hot_windows, color=(0, 0, 255), thick=6)                    
+	# window_img = draw_boxes(draw_image, hot_windows, color=(0, 0, 255), thick=6)                    
 
-	heat = np.zeros_like(window_img[:,:,0]).astype(np.float)
+	# heat = np.zeros_like(window_img[:,:,0]).astype(np.float)
 
-	# Add heat to each box in box list
-	heat = add_heat(heat,hot_windows)
+	# # Add heat to each box in box list
+	# heat = add_heat(heat,hot_windows)
 		
-	# Apply threshold to help remove false positives
-	heat = apply_threshold(heat,1)
+	# # Apply threshold to help remove false positives
+	# heat = apply_threshold(heat,1)
 
-	# Visualize the heatmap when displaying    
-	heatmap = np.clip(heat, 0, 255)
+	# # Visualize the heatmap when displaying    
+	# heatmap = np.clip(heat, 0, 255)
 
-	# Find final boxes from heatmap using label function
-	labels = label(heatmap)
-	draw_img = draw_labeled_bboxes(np.copy(image), labels)
+	# # Find final boxes from heatmap using label function
+	# labels = label(heatmap)
+	# draw_img = draw_labeled_bboxes(np.copy(image), labels)
 
-	fig = plt.figure()
-	plt.subplot(131)
-	plt.imshow(window_img)
-	plt.title('Multiple and False detetections Car Positions')
-	plt.subplot(132)
-	plt.imshow(draw_img)
-	plt.title('Car Positions after filtering')
-	plt.subplot(133)
-	plt.imshow(heatmap, cmap='hot')
-	plt.title('Heat Map')
+	# fig = plt.figure()
+	# plt.subplot(131)
+	# plt.imshow(window_img)
+	# plt.title('Multiple and False detetections Car Positions')
+	# plt.subplot(132)
+	# plt.imshow(draw_img)
+	# plt.title('Car Positions after filtering')
+	# plt.subplot(133)
+	# plt.imshow(heatmap, cmap='hot')
+	# plt.title('Heat Map')
 
-	plt.show()
+	# plt.show()
 
 # Save the camera calibration result for later use (we won't worry about rvecs / tvecs)
 dist_pickle = {}

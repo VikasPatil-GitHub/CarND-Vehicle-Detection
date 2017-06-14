@@ -23,6 +23,8 @@ from filter import *
 def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins):
     
 	box_list=[]
+	all_boxes = []
+	lengths = []
 	draw_img = np.copy(img)
 	img = img.astype(np.float32)/255
 
@@ -66,6 +68,11 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
 			xleft = xpos*pix_per_cell
 			ytop = ypos*pix_per_cell
 
+			_xbox_left = np.int(xleft*scale)
+			_ytop_draw = np.int(ytop*scale)
+			_win_draw = np.int(window*scale)
+			all_boxes.append(((_xbox_left, _ytop_draw+ystart), (_xbox_left+_win_draw,_ytop_draw+_win_draw+ystart)))
+			
 			# Extract the image patch
 			subimg = cv2.resize(ctrans_tosearch[ytop:ytop+window, xleft:xleft+window], (64,64))
 			# Get color features
@@ -83,41 +90,52 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
 				win_draw = np.int(window*scale)
 				box_list.append(((xbox_left, ytop_draw+ystart), (xbox_left+win_draw,ytop_draw+win_draw+ystart)))
 				cv2.rectangle(draw_img,(xbox_left, ytop_draw+ystart),(xbox_left+win_draw,ytop_draw+win_draw+ystart),(0,0,255),6) 
-				
+		lengths.append(len(all_boxes))
 	return draw_img, box_list
     
-# ystart = 370
-# ystop = 656
-# scale = 1.65
-    
-# images_test = glob.glob('./test_images/test*.jpg')
-# for image_test in images_test:
-	# img = mpimg.imread(image_test)
-	# out_img, box_list = find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)
+ystart = 370
+ystop = 656
+scale = 1.65
 
-	# heat = np.zeros_like(out_img[:,:,0]).astype(np.float)
+image_test = mpimg.imread('./test_images/test4.jpg')
 
-	# # Add heat to each box in box list
-	# heat = add_heat(heat,box_list)
+out_img, box_list = find_cars(image_test, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)
+
+window_img = draw_boxes(image_test, box_list, color=(0, 0, 255), thick=6)
+
+
+plt.imshow(window_img)
+plt.title('Sliding window output')
+plt.show()
+
+images_test = glob.glob('./test_images/test*.jpg')
+for image_test in images_test:
+	img = mpimg.imread(image_test)
+	out_img, box_list = find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)
+
+	heat = np.zeros_like(out_img[:,:,0]).astype(np.float)
+
+	# Add heat to each box in box list
+	heat = add_heat(heat,box_list)
 		
-	# # Apply threshold to help remove false positives
-	# heat = apply_threshold(heat,1)
+	# Apply threshold to help remove false positives
+	heat = apply_threshold(heat,1)
 
-	# # Visualize the heatmap when displaying    
-	# heatmap = np.clip(heat, 0, 255)
+	# Visualize the heatmap when displaying    
+	heatmap = np.clip(heat, 0, 255)
 
-	# # Find final boxes from heatmap using label function
-	# labels = label(heatmap)
-	# draw_img = draw_labeled_bboxes(np.copy(img), labels)
+	# Find final boxes from heatmap using label function
+	labels = label(heatmap)
+	draw_img = draw_labeled_bboxes(np.copy(img), labels)
 
-	# fig = plt.figure()
-	# plt.subplot(131)
-	# plt.imshow(out_img)
-	# plt.title('Multiple and False detetections Car Positions')
-	# plt.subplot(132)
-	# plt.imshow(draw_img)
-	# plt.title('Car Positions after filtering')
-	# plt.subplot(133)
-	# plt.imshow(heatmap, cmap='hot')
-	# plt.title('Heat Map hot')
-	# plt.show()
+	fig = plt.figure()
+	plt.subplot(131)
+	plt.imshow(out_img)
+	plt.title('Multiple and False detetections Car Positions')
+	plt.subplot(132)
+	plt.imshow(draw_img)
+	plt.title('Car Positions after filtering')
+	plt.subplot(133)
+	plt.imshow(heatmap, cmap='hot')
+	plt.title('Heat Map hot')
+	plt.show()
