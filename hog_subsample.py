@@ -7,16 +7,16 @@ import glob
 from lesson_functions import *
 from filter import *
 
-# dist_pickle = pickle.load( open("svc_pickle.p", "rb" ) )
-# svc = dist_pickle["svc"]
-# X_scaler = dist_pickle["scaler"]
-# orient = dist_pickle["orient"]
-# pix_per_cell = dist_pickle["pix_per_cell"]
-# cell_per_block = dist_pickle["cell_per_block"]
-# spatial_size = dist_pickle["spatial_size"]
-# hist_bins = dist_pickle["hist_bins"]
+dist_pickle = pickle.load( open("svc_pickle.p", "rb" ) )
+svc = dist_pickle["svc"]
+X_scaler = dist_pickle["scaler"]
+orient = dist_pickle["orient"]
+pix_per_cell = dist_pickle["pix_per_cell"]
+cell_per_block = dist_pickle["cell_per_block"]
+spatial_size = dist_pickle["spatial_size"]
+hist_bins = dist_pickle["hist_bins"]
 
-# print(svc,X_scaler,orient,pix_per_cell,cell_per_block,spatial_size,hist_bins)
+print(svc,X_scaler,orient,pix_per_cell,cell_per_block,spatial_size,hist_bins)
 
 
 # Define a single function that can extract features using hog sub-sampling and make predictions
@@ -108,7 +108,12 @@ plt.imshow(window_img)
 plt.title('Sliding window output')
 plt.show()
 
+font_size=15
+f, axarr = plt.subplots(6, 3)
+f.subplots_adjust(hspace=0.3)
+
 images_test = glob.glob('./test_images/test*.jpg')
+ind = 0
 for image_test in images_test:
 	img = mpimg.imread(image_test)
 	out_img, box_list = find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)
@@ -128,14 +133,24 @@ for image_test in images_test:
 	labels = label(heatmap)
 	draw_img = draw_labeled_bboxes(np.copy(img), labels)
 
-	fig = plt.figure()
-	plt.subplot(131)
-	plt.imshow(out_img)
-	plt.title('Multiple and False detetections Car Positions')
-	plt.subplot(132)
-	plt.imshow(draw_img)
-	plt.title('Car Positions after filtering')
-	plt.subplot(133)
-	plt.imshow(heatmap, cmap='hot')
-	plt.title('Heat Map hot')
-	plt.show()
+	axarr[ind,0].imshow(out_img)
+	axarr[ind,0].set_xticks([])
+	axarr[ind,0].set_yticks([])
+	title = "Test image {0}".format(ind)
+	axarr[ind,0].set_title(title, fontsize=font_size)
+
+	axarr[ind,1].imshow(heat,cmap='hot')
+	axarr[ind,1].set_xticks([])
+	axarr[ind,1].set_yticks([])
+	title = "Test image {0} heatmap".format(ind)
+	axarr[ind,1].set_title(title, fontsize=font_size)
+	
+	axarr[ind,2].imshow(draw_img)
+	axarr[ind,2].set_xticks([])
+	axarr[ind,2].set_yticks([])
+	title = "Test image {0} output".format(ind)
+	axarr[ind,2].set_title(title, fontsize=font_size)
+	
+	ind += 1
+
+plt.show()
