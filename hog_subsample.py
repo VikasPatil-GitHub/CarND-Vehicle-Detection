@@ -4,6 +4,7 @@ import numpy as np
 import pickle
 import cv2
 import glob
+import os
 from lesson_functions import *
 from filter import *
 
@@ -133,17 +134,23 @@ for image_test in images_test:
 	labels = label(heatmap)
 	draw_img = draw_labeled_bboxes(np.copy(img), labels)
 
+	plt.imsave('./output_images/unfilt_'+os.path.split(image_test)[1],out_img)
+	
 	axarr[ind,0].imshow(out_img)
 	axarr[ind,0].set_xticks([])
 	axarr[ind,0].set_yticks([])
 	title = "Test image {0}".format(ind)
 	axarr[ind,0].set_title(title, fontsize=font_size)
 
+	plt.imsave('./output_images/heatmap_'+os.path.split(image_test)[1],heat)
+	
 	axarr[ind,1].imshow(heat,cmap='hot')
 	axarr[ind,1].set_xticks([])
 	axarr[ind,1].set_yticks([])
 	title = "Test image {0} heatmap".format(ind)
 	axarr[ind,1].set_title(title, fontsize=font_size)
+	
+	plt.imsave('./output_images/filt_'+os.path.split(image_test)[1],draw_img)
 	
 	axarr[ind,2].imshow(draw_img)
 	axarr[ind,2].set_xticks([])
