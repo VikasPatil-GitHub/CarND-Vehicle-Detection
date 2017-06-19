@@ -12,7 +12,7 @@ The goals / steps of this project are the following:
 [//]: # (Image References)
 [image1]: ./output_images/car_notcar.png
 [image2]: ./output_images/car_notcar_color_spaces_hog.png
-[image3]: ./output_images/sliding_window.png
+[image3]: ./output_images/sliding_window.jpg
 [image4]: ./output_images/unfilt_test1.jpg
 [image5]: ./output_images/output.png
 [image6]: ./output_images/heatmap_test1.jpg
@@ -40,7 +40,7 @@ Here is an example using the `YCrCb` color space and HOG parameters of `orientat
 
 #### 2. Explain how you settled on your final choice of HOG parameters.
 
-I experimented with a number of different combinations of color spaces and HOG parameters and trained a linear SVM using different combinations of HOG features extracted from the YCrCb color channels. YCrCb color space with `orientations=9`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)` provided a good result as compared to other color spaces.
+I experimented with a number of different combinations of color spaces and HOG parameters and trained a linear SVM using different combinations of HOG features extracted from the YCrCb color channels. YCrCb color space with `orientations=9`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)` provided a good result as compared to other color spaces. With these parameters I was able to achieve a classification accuracy of 98.7 % and it also helped identify the cars correctly. Hence I settled on these parameters for my project.
 
 #### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
@@ -54,9 +54,11 @@ The sliding windoe search is implemented in lines 24 through 95 in 'hog_subsampl
 
 ![alt text][image3]
 
+As can be seen in the image the sliding windows extend all the way to the rightmost part of the image.
+
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
+On the test images the Hog sub-sampling feature extraction was done on three scales(1.3, 1.5 and 1.9 line 105 in 'hog_subsample.py'), but on the video pipeline the Hog sub-sampling was done on two scales (1.5 and 1.8). The reason for this is because sampling with 1.3 scale induced many false positives. Here is the output of multiple detections on one of the test images:
 
 ![alt text][image4]
 ---
@@ -85,4 +87,11 @@ Here's an example result showing the heatmap from a series of frames of video, t
 
 ---
 
+### Discussion
+
+#### 1. Briefly discuss any problems / issues you faced in your implementation of this project. Where will your pipeline likely fail? What could you do to make it more robust?
+
+Below are some of the improvements required for the pipeline to work efficiently:
+1) In the current pipeline I am assinging the scales manually, this can be improved by having a minimum and maximum scales with intermediate scales in between them.
+2) The current pipeline dosen't detect a vehicle if it is positioned at some angle as can be seen in 'filt_test5.jpg' in output_images folder. This can be improved by adding images of vehicles positioned at different angles to the training dataset.
 
