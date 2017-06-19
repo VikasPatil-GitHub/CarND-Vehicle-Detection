@@ -22,14 +22,25 @@ print(svc,X_scaler,orient,pix_per_cell,cell_per_block,spatial_size,hist_bins)
 
 ystart = 370
 ystop = 656
-scale = 1.5
+scales = [1.5,1.8]
+#scales = [1.5]
 
 boxes = BoundingBoxes(n=30)
 
-def process_image(img):
-	out_img, box_list = find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)
+box_list_all_scales = []
 
-	boxes.update(box_list)
+def process_image(img):
+	
+	image = np.copy(img)
+
+	del box_list_all_scales[:]
+	
+	for scale in scales:
+		box_list_all_scales.extend(find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)[0])
+	
+	out_img = draw_boxes(img, box_list_all_scales, color=(0, 0, 255), thick=6)
+
+	boxes.update(box_list_all_scales)
 	
 	heat = np.zeros_like(out_img[:,:,0]).astype(np.float)
 
@@ -37,14 +48,14 @@ def process_image(img):
 	heat = add_heat(heat,boxes.allboxes)
 		
 	# Apply threshold to help remove false positives
-	heat = apply_threshold(heat,10)
+	heat = apply_threshold(heat,15)
 
 	# Visualize the heatmap when displaying    
 	heatmap = np.clip(heat, 0, 255)
 
 	# Find final boxes from heatmap using label function
 	labels = label(heatmap)
-	draw_img = draw_labeled_bboxes(np.copy(img), labels)
+	draw_img = draw_labeled_bboxes(image, labels)
 	
 	return draw_img
 	
